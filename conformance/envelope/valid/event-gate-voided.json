@@ -1,0 +1,23 @@
+{
+  "seq": 19,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Event",
+    "payload": {
+      "id": "evt-0001",
+      "subject": {
+        "kind": "Gate",
+        "id": "c2b6f0f3d6f0b5a1e4c8d2a9f7b3e6c1a4d7f0b3e6c9a2d5f8b1e4c7a0d3f6b9"
+      },
+      "attention": "Normal",
+      "kind": {
+        "kind": "GateVoided",
+        "data": {
+          "gate_id": "c2b6f0f3d6f0b5a1e4c8d2a9f7b3e6c1a4d7f0b3e6c9a2d5f8b1e4c7a0d3f6b9",
+          "reason": "content_hash no live match",
+          "ts": "2026-09-12T00:00:01Z"
+        }
+      }
+    }
+  }
+}

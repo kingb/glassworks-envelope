@@ -1,0 +1,25 @@
+{
+  "seq": 31,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Command",
+    "payload": {
+      "kind": "Subscribe",
+      "data": {
+        "kinds": {
+          "classes": [
+            "Agent",
+            "Curation"
+          ]
+        },
+        "agents": [
+          "agent-7f3a"
+        ],
+        "caps": {
+          "status": true,
+          "view": false
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+# Rust
+/target
+**/target
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+# Both lockfiles are committed deliberately, not ignored: `uv run` inside a directory
+# with a `[project]` pyproject.toml resolves the project and writes uv.lock, exactly as
+# `cargo` reads Cargo.lock — both are needed for each binding's CI to be reproducible.
+# NEVER ignore generated bindings — they are committed on purpose so consumers need no
+# code-generation toolchain (see README "What this is").

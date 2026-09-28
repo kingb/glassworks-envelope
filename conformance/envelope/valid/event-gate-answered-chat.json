@@ -1,0 +1,24 @@
+{
+  "seq": 15,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Event",
+    "payload": {
+      "id": "evt-0001",
+      "subject": {
+        "kind": "Agent",
+        "id": "agent-7f3a"
+      },
+      "attention": "Normal",
+      "kind": {
+        "kind": "GateAnswered",
+        "data": {
+          "gate_id": "gate-11ab",
+          "resolution": {
+            "kind": "Chat"
+          }
+        }
+      }
+    }
+  }
+}

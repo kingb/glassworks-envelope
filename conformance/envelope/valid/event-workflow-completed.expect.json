@@ -1,0 +1,24 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Event",
+      "payload": {
+        "attention": "Normal",
+        "id": "evt-0001",
+        "kind": {
+          "kind": "WorkflowCompleted"
+        },
+        "subject": {
+          "id": "wf-2f19",
+          "kind": "Workflow"
+        }
+      }
+    },
+    "seq": 27
+  },
+  "summary": {
+    "direction": "Event",
+    "kind": "WorkflowCompleted"
+  }
+}

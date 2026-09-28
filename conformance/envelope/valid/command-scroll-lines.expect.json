@@ -1,0 +1,22 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Command",
+      "payload": {
+        "data": {
+          "agent": "agent-7f3a",
+          "amount": {
+            "Lines": -3
+          }
+        },
+        "kind": "Scroll"
+      }
+    },
+    "seq": 46
+  },
+  "summary": {
+    "direction": "Command",
+    "kind": "Scroll"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "seq": 62,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Command",
+    "payload": {
+      "kind": "ViewerFocus",
+      "data": {
+        "agent": "agent-7f3a",
+        "focused": "yes"
+      }
+    }
+  }
+}

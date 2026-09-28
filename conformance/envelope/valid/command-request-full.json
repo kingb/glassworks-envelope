@@ -1,0 +1,13 @@
+{
+  "seq": 43,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Command",
+    "payload": {
+      "kind": "RequestFull",
+      "data": {
+        "agent": "agent-7f3a"
+      }
+    }
+  }
+}

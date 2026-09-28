@@ -1,0 +1,36 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Event",
+      "payload": {
+        "attention": "Normal",
+        "id": "evt-0001",
+        "kind": {
+          "data": {
+            "factory": "factory-surface",
+            "name": null,
+            "origin": {
+              "data": "agent-lead-01",
+              "origin": "Agent"
+            },
+            "role": {
+              "parent": "agent-lead-01",
+              "role": "Teammate"
+            }
+          },
+          "kind": "AgentAppeared"
+        },
+        "subject": {
+          "id": "agent-7f3a",
+          "kind": "Agent"
+        }
+      }
+    },
+    "seq": 3
+  },
+  "summary": {
+    "direction": "Event",
+    "kind": "AgentAppeared"
+  }
+}

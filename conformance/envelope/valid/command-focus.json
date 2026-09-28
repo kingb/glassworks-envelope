@@ -1,0 +1,13 @@
+{
+  "seq": 38,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Command",
+    "payload": {
+      "kind": "Focus",
+      "data": {
+        "agent": "agent-7f3a"
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Event",
+      "payload": {
+        "attention": "Normal",
+        "id": "evt-0042",
+        "kind": {
+          "data": {
+            "data": "Bell",
+            "kind": "Event"
+          },
+          "kind": "AgentView"
+        },
+        "subject": {
+          "id": "agent-7f3a",
+          "kind": "Agent"
+        }
+      }
+    },
+    "seq": 42
+  },
+  "summary": {
+    "direction": "Event",
+    "kind": "AgentView"
+  }
+}

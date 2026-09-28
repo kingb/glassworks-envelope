@@ -1,0 +1,27 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Event",
+      "payload": {
+        "attention": "Normal",
+        "id": "evt-0001",
+        "kind": {
+          "data": {
+            "legs": 2
+          },
+          "kind": "FanOutStarted"
+        },
+        "subject": {
+          "id": "wf-2f19",
+          "kind": "Workflow"
+        }
+      }
+    },
+    "seq": 25
+  },
+  "summary": {
+    "direction": "Event",
+    "kind": "FanOutStarted"
+  }
+}

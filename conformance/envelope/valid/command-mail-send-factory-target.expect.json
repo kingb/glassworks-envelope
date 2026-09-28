@@ -1,0 +1,24 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Command",
+      "payload": {
+        "data": {
+          "body": "pulling the new pin.",
+          "subject": "rollout",
+          "to": {
+            "id": "factory-surface",
+            "kind": "Factory"
+          }
+        },
+        "kind": "MailSend"
+      }
+    },
+    "seq": 44
+  },
+  "summary": {
+    "direction": "Command",
+    "kind": "MailSend"
+  }
+}

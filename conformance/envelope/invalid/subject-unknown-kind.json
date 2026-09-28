@@ -1,0 +1,21 @@
+{
+  "seq": 1,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Event",
+    "payload": {
+      "id": "evt-0001",
+      "subject": {
+        "kind": "Planet",
+        "id": "mars"
+      },
+      "attention": "Normal",
+      "kind": {
+        "kind": "AgentStatus",
+        "data": {
+          "status": "Working"
+        }
+      }
+    }
+  }
+}

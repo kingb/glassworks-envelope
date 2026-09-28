@@ -1,0 +1,19 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Command",
+      "payload": {
+        "data": {
+          "agent": "agent-7f3a"
+        },
+        "kind": "Focus"
+      }
+    },
+    "seq": 38
+  },
+  "summary": {
+    "direction": "Command",
+    "kind": "Focus"
+  }
+}

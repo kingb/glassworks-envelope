@@ -1,0 +1,16 @@
+{
+  "seq": 42,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Command",
+    "payload": {
+      "kind": "Nudge",
+      "data": {
+        "target": {
+          "kind": "Broadcast"
+        },
+        "text": "shutting down in five"
+      }
+    }
+  }
+}

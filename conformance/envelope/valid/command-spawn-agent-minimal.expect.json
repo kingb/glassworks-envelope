@@ -1,0 +1,31 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Command",
+      "payload": {
+        "data": {
+          "cmd": [
+            "claude"
+          ],
+          "cwd": "/w/surface",
+          "factory": "factory-surface",
+          "name": null,
+          "origin": {
+            "data": {
+              "source": "scheduler"
+            },
+            "origin": "ExternalTrigger"
+          },
+          "resume": null
+        },
+        "kind": "SpawnAgent"
+      }
+    },
+    "seq": 35
+  },
+  "summary": {
+    "direction": "Command",
+    "kind": "SpawnAgent"
+  }
+}

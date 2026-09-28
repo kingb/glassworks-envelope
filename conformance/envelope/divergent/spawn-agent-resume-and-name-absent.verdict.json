@@ -1,0 +1,30 @@
+{
+  "property": "BusCommand::SpawnAgent.resume and .name",
+  "schema": "rejects",
+  "bindings": {
+    "rust": "accepts",
+    "python": "rejects"
+  },
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Command",
+      "payload": {
+        "data": {
+          "cmd": [
+            "claude"
+          ],
+          "cwd": "/w/surface",
+          "factory": "factory-surface",
+          "name": null,
+          "origin": {
+            "origin": "Operator"
+          },
+          "resume": null
+        },
+        "kind": "SpawnAgent"
+      }
+    },
+    "seq": 1
+  }
+}

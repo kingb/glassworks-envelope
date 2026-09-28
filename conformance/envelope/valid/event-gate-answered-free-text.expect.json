@@ -1,0 +1,31 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Event",
+      "payload": {
+        "attention": "Normal",
+        "id": "evt-0001",
+        "kind": {
+          "data": {
+            "gate_id": "gate-11ab",
+            "resolution": {
+              "kind": "Answer",
+              "text": "staging"
+            }
+          },
+          "kind": "GateAnswered"
+        },
+        "subject": {
+          "id": "agent-7f3a",
+          "kind": "Agent"
+        }
+      }
+    },
+    "seq": 14
+  },
+  "summary": {
+    "direction": "Event",
+    "kind": "GateAnswered"
+  }
+}

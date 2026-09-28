@@ -1,0 +1,27 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Event",
+      "payload": {
+        "attention": "Normal",
+        "id": "evt-0001",
+        "kind": {
+          "data": {
+            "status": "Idle"
+          },
+          "kind": "AgentStatus"
+        },
+        "subject": {
+          "id": "8814",
+          "kind": "Memory"
+        }
+      }
+    },
+    "seq": 30
+  },
+  "summary": {
+    "direction": "Event",
+    "kind": "AgentStatus"
+  }
+}

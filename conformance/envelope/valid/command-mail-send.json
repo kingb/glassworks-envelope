@@ -1,0 +1,18 @@
+{
+  "seq": 43,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Command",
+    "payload": {
+      "kind": "MailSend",
+      "data": {
+        "to": {
+          "kind": "Group",
+          "id": "group-surface"
+        },
+        "subject": "corpus regenerated",
+        "body": "every kind now has a fixture."
+      }
+    }
+  }
+}

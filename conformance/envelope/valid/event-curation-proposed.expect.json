@@ -1,0 +1,31 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Event",
+      "payload": {
+        "attention": "NeedsYou",
+        "id": "evt-0001",
+        "kind": {
+          "data": {
+            "content_hash": "1f0a7c5d3b8e2a6f4c9d0b7e5a3f1c8d6b4e2a0f9c7d5b3e1a8f6c4d2b0e9a7f",
+            "gate_id": "c2b6f0f3d6f0b5a1e4c8d2a9f7b3e6c1a4d7f0b3e6c9a2d5f8b1e4c7a0d3f6b9",
+            "proposed_scope": "shared/domain/wire-contracts",
+            "source_trust": "user_authored",
+            "ts": "2026-09-12T00:00:00Z"
+          },
+          "kind": "CurationProposed"
+        },
+        "subject": {
+          "id": "c2b6f0f3d6f0b5a1e4c8d2a9f7b3e6c1a4d7f0b3e6c9a2d5f8b1e4c7a0d3f6b9",
+          "kind": "Gate"
+        }
+      }
+    },
+    "seq": 18
+  },
+  "summary": {
+    "direction": "Event",
+    "kind": "CurationProposed"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "seq": 11,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Event",
+    "payload": {
+      "id": "evt-0001",
+      "subject": {
+        "kind": "Agent",
+        "id": "agent-7f3a"
+      },
+      "attention": "NeedsYou",
+      "kind": {
+        "kind": "GateRequested",
+        "data": {
+          "gate_id": "gate-0f2c",
+          "producer": "AgentPermission",
+          "subject_ref": {
+            "kind": "Agent",
+            "id": "agent-7f3a"
+          },
+          "options": [
+            {
+              "id": "allow",
+              "label": "Allow this once"
+            },
+            {
+              "id": "deny",
+              "label": "Deny"
+            }
+          ],
+          "context_summary": "wants to write outside the workspace"
+        }
+      }
+    }
+  }
+}

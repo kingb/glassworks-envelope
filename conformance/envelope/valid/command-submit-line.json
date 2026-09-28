@@ -1,0 +1,14 @@
+{
+  "seq": 37,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Command",
+    "payload": {
+      "kind": "SubmitLine",
+      "data": {
+        "agent": "agent-7f3a",
+        "text": "run the corpus"
+      }
+    }
+  }
+}

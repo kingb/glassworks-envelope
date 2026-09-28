@@ -1,0 +1,24 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Command",
+      "payload": {
+        "data": {
+          "body": "every kind now has a fixture.",
+          "subject": "corpus regenerated",
+          "to": {
+            "id": "group-surface",
+            "kind": "Group"
+          }
+        },
+        "kind": "MailSend"
+      }
+    },
+    "seq": 43
+  },
+  "summary": {
+    "direction": "Command",
+    "kind": "MailSend"
+  }
+}

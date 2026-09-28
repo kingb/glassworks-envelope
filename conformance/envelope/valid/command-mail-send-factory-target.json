@@ -1,0 +1,18 @@
+{
+  "seq": 44,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Command",
+    "payload": {
+      "kind": "MailSend",
+      "data": {
+        "to": {
+          "kind": "Factory",
+          "id": "factory-surface"
+        },
+        "subject": "rollout",
+        "body": "pulling the new pin."
+      }
+    }
+  }
+}

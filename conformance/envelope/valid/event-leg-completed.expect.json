@@ -1,0 +1,29 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Event",
+      "payload": {
+        "attention": "Normal",
+        "id": "evt-0001",
+        "kind": {
+          "data": {
+            "leg": 1,
+            "leg_id": "leg-b",
+            "outcome": "done"
+          },
+          "kind": "LegCompleted"
+        },
+        "subject": {
+          "id": "wf-2f19",
+          "kind": "Workflow"
+        }
+      }
+    },
+    "seq": 26
+  },
+  "summary": {
+    "direction": "Event",
+    "kind": "LegCompleted"
+  }
+}

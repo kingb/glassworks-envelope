@@ -1,0 +1,22 @@
+{
+  "seq": 64,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Event",
+    "payload": {
+      "id": "evt-0064",
+      "subject": {
+        "kind": "Agent",
+        "id": "agent-7f3a"
+      },
+      "attention": "Normal",
+      "kind": {
+        "kind": "AgentView",
+        "data": {
+          "kind": "Grid",
+          "data": "not-a-delta"
+        }
+      }
+    }
+  }
+}

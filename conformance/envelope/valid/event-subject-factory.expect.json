@@ -1,0 +1,27 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Event",
+      "payload": {
+        "attention": "Normal",
+        "id": "evt-0001",
+        "kind": {
+          "data": {
+            "status": "Unknown"
+          },
+          "kind": "AgentStatus"
+        },
+        "subject": {
+          "id": "factory-surface",
+          "kind": "Factory"
+        }
+      }
+    },
+    "seq": 29
+  },
+  "summary": {
+    "direction": "Event",
+    "kind": "AgentStatus"
+  }
+}

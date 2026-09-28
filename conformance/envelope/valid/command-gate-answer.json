@@ -1,0 +1,18 @@
+{
+  "seq": 40,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Command",
+    "payload": {
+      "kind": "GateAnswer",
+      "data": {
+        "gate_id": "gate-0f2c",
+        "resolution": {
+          "kind": "Select",
+          "option": "deny",
+          "note": null
+        }
+      }
+    }
+  }
+}

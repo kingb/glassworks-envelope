@@ -1,0 +1,31 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Command",
+      "payload": {
+        "data": {
+          "agents": [
+            "agent-7f3a"
+          ],
+          "caps": {
+            "status": true,
+            "view": false
+          },
+          "kinds": {
+            "classes": [
+              "Agent",
+              "Curation"
+            ]
+          }
+        },
+        "kind": "Subscribe"
+      }
+    },
+    "seq": 31
+  },
+  "summary": {
+    "direction": "Command",
+    "kind": "Subscribe"
+  }
+}

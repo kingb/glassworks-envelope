@@ -1,0 +1,1270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kingb/glassworks-envelope/schema/envelope/v1",
+  "title": "Envelope",
+  "description": "The outermost wire frame for every message on the bus. `seq` is monotonic per connection and is the ordering / resync key; `at` is when the frame was created; `body` is the payload, discriminated by direction. This document defines the contract only; the bus is a transport and this repository owns neither the traffic nor the producers.\n\nWhat is modelled here is the *wire*: the bytes a producer emits and a client reads. Daemon-internal actor and host types are deliberately out of scope — the cut is at the transport boundary.\n\nTwo conventions hold throughout, and both are load-bearing:\n\n1. **Unknown properties are ignored, never rejected.** No object in this schema sets `additionalProperties: false`, because the reference producer's deserializer ignores fields it does not know. A schema that rejected them would refuse documents the bus itself accepts, which is the wrong direction for a contract that must tolerate a newer peer. The `extra-fields` fixture pins this.\n\n2. **A property is `required` exactly when the producer always writes it.** A nullable-but-required property (`name`, `tool`, `note`, `agents`, `resume`, `gap`) is one the producer emits as `null` rather than omitting; an *absent* property (`trace`, `parent_span_id`) is one the producer genuinely leaves off the wire. The distinction is not cosmetic: code generated from this schema drops unrequired properties when it re-emits, so mislabelling one would make a generated client emit documents no producer ever produces. Read-side leniency (the producer also accepts a missing `name`) is deserializer tolerance, not the wire contract.",
+  "type": "object",
+  "required": ["seq", "at", "body"],
+  "properties": {
+    "seq": {
+      "description": "Monotonic sequence number, per connection. Ordering and resync key: delivery is best-effort, so a client that sees a gap asks for a snapshot rather than assuming loss.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615
+    },
+    "at": {
+      "description": "Unix epoch milliseconds when the envelope was created. Stamped by the bus, never by the producer — a producer's own timestamp, where one exists, rides inside the payload as provenance (see `CurationProposed.ts`).",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615
+    },
+    "body": { "$ref": "#/$defs/Body" }
+  },
+
+  "$defs": {
+    "Body": {
+      "title": "Body",
+      "description": "The payload, discriminated by direction of travel. `Event` is bus to client; `Command` is client to bus.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["direction", "payload"],
+          "properties": {
+            "direction": { "const": "Event" },
+            "payload": { "$ref": "#/$defs/BusEvent" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["direction", "payload"],
+          "properties": {
+            "direction": { "const": "Command" },
+            "payload": { "$ref": "#/$defs/BusCommand" }
+          }
+        }
+      ]
+    },
+
+    "BusEvent": {
+      "title": "BusEvent",
+      "description": "A single typed event emitted to subscribed clients. Every event names a subject — the cross-plane join key — so events from different planes about the same entity line up on one timeline.",
+      "type": "object",
+      "required": ["id", "subject", "attention", "kind"],
+      "properties": {
+        "id": { "$ref": "#/$defs/EventId" },
+        "subject": { "$ref": "#/$defs/SubjectRef" },
+        "attention": { "$ref": "#/$defs/Attention" },
+        "kind": { "$ref": "#/$defs/EventKind" },
+        "trace": {
+          "$ref": "#/$defs/TraceContext",
+          "description": "Cross-plane trace context. Absent means untraced, and an untraced event is byte-identical to one from before tracing existed — which is why this property is omitted rather than written as null. Producers propagate the context they were given, or mint one only at a true origin."
+        }
+      }
+    },
+
+    "TraceContext": {
+      "title": "TraceContext",
+      "description": "Trace context for one event, aligned with the W3C `traceparent` field shapes. `trace_id` is the correlation key for a whole causal chain and is propagated unchanged; `span_id` identifies this event's span; `parent_span_id` links to the causing event's span.\n\nThis is the one place the schema is deliberately *stricter* than the producer's own type, which carries these as unvalidated strings. The boundary that accepts producer-supplied contexts checks this shape and rejects a malformed one rather than propagating it to every subscriber, so the hex shape is genuinely part of the wire contract and not merely a convention. The all-zero value is excluded because `traceparent` defines it as invalid.",
+      "type": "object",
+      "required": ["trace_id", "span_id"],
+      "properties": {
+        "trace_id": { "$ref": "#/$defs/TraceId" },
+        "span_id": { "$ref": "#/$defs/SpanId" },
+        "parent_span_id": {
+          "$ref": "#/$defs/SpanId",
+          "description": "The causing event's span. Absent at the root of a chain; omitted rather than null, so a root context is byte-identical to a context from a producer that does not parent its events."
+        }
+      }
+    },
+
+    "Attention": {
+      "title": "Attention",
+      "description": "Urgency signal carried by every event. Drives the operator's badge and anything that pushes notifications; gates default to `NeedsYou`. `Normal` means no operator action; `NeedsYou` means look when convenient (also used for a surfaced error that is not a gate); `Urgent` means act now.",
+      "type": "string",
+      "enum": ["Normal", "NeedsYou", "Urgent"]
+    },
+
+    "SubjectRef": {
+      "title": "SubjectRef",
+      "description": "What an event is about — the single identity join key across planes. The same agent or factory id is stamped by every plane, so their timelines reconcile without a translation table.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": { "const": "Agent" },
+            "id": { "$ref": "#/$defs/AgentRef" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": { "const": "Factory" },
+            "id": { "$ref": "#/$defs/FactoryRef" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": { "const": "Workflow" },
+            "id": { "$ref": "#/$defs/WorkflowRef" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": { "const": "Memory" },
+            "id": { "$ref": "#/$defs/MemoryItemRef" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": { "const": "Gate" },
+            "id": { "$ref": "#/$defs/GateId" }
+          }
+        }
+      ]
+    },
+
+    "EventKind": {
+      "title": "EventKind",
+      "description": "The event payload. Deliberately a small, coarse set of per-plane verbs: fine-grained variety rides in plane-owned open-vocabulary string fields rather than in new kinds, which is what keeps this enumeration from sprawling.\n\nAdding a kind is an additive, minor change; a consumer that meets an unknown kind is meeting a newer peer, and should say so rather than guess. Note that a plane owning a vocabulary field means the bus transports its values without interpreting them — `verdict`, `outcome`, `deviation_kind`, `proposed_scope` and `source_trust` are all strings for that reason, not because their values are arbitrary.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "AgentAppeared" },
+            "data": {
+              "description": "An agent process started.",
+              "type": "object",
+              "required": ["factory", "role", "origin", "name"],
+              "properties": {
+                "factory": { "$ref": "#/$defs/FactoryRef" },
+                "role": { "$ref": "#/$defs/AgentRole" },
+                "origin": { "$ref": "#/$defs/SpawnOrigin" },
+                "name": {
+                  "description": "The agent's recognizable name, if one was assigned at spawn. Echoed here so a client can label the agent without a second query. Null when unnamed, in which case clients display the id.",
+                  "type": ["string", "null"]
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "AgentStatus" },
+            "data": { "$ref": "#/$defs/AgentStatus" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "AgentView" },
+            "data": { "$ref": "#/$defs/AgentView" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "AgentExited" },
+            "data": {
+              "description": "The agent process exited.",
+              "type": "object",
+              "required": ["code"],
+              "properties": {
+                "code": {
+                  "description": "The process exit code.",
+                  "type": "integer",
+                  "minimum": -2147483648,
+                  "maximum": 2147483647
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "AgentActivity" },
+            "data": {
+              "description": "The tool the agent is now running changed — the decoration behind a `working — <tool>` label. Content-free by contract: the tool's *name* is a safe category, its input never rides the bus. Separate from `AgentStatus` on purpose, because the status is asserted independently by another signal and folding the two together would let them fight over the label.",
+              "type": "object",
+              "required": ["tool"],
+              "properties": {
+                "tool": {
+                  "description": "The current tool, or null between tools.",
+                  "type": ["string", "null"]
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "GateRequested" },
+            "data": { "$ref": "#/$defs/Gate" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "GateAnswered" },
+            "data": {
+              "description": "An operator resolved an open gate.",
+              "type": "object",
+              "required": ["gate_id", "resolution"],
+              "properties": {
+                "gate_id": { "$ref": "#/$defs/GateId" },
+                "resolution": { "$ref": "#/$defs/GateResolution" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "MailArrived" },
+            "data": {
+              "description": "A mail message arrived — a hint to re-query the durable store, never the message itself. Durable things live in their own store; bus notifications about them are doorbells.",
+              "type": "object",
+              "required": ["to", "from", "mail_id", "subject"],
+              "properties": {
+                "to": { "$ref": "#/$defs/Target" },
+                "from": { "$ref": "#/$defs/AgentRef" },
+                "mail_id": { "$ref": "#/$defs/MailId" },
+                "subject": { "type": "string" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "MemoryInjected" },
+            "data": {
+              "description": "The memory plane injected items into an agent's context. Content-free by construction: ids, scores, and a short reason — never the fact text or the query that retrieved it. The carrying event's subject names the agent the injection went to.",
+              "type": "object",
+              "required": ["items", "scores", "reason"],
+              "properties": {
+                "items": {
+                  "description": "The injected item ids — opaque refs into the owning plane's store.",
+                  "type": "array",
+                  "items": { "$ref": "#/$defs/MemoryItemRef" }
+                },
+                "scores": {
+                  "description": "Ranker scores, parallel-length to `items`. The parallel-length rule is enforced by the ingress that accepts these, not by this schema: JSON Schema cannot relate two array lengths, and a contract that silently fails to check a rule it appears to state is worse than one that does not state it.",
+                  "type": "array",
+                  "items": { "type": "number" }
+                },
+                "reason": {
+                  "description": "Short, content-free reason — which ranker and cut produced this.",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "CurationProposed" },
+            "data": {
+              "description": "The memory plane's curator proposed a promotion and opened a curation gate. Content-free: hex refs and vocabulary strings, never fact text. The carrying event's subject is the gate.",
+              "type": "object",
+              "required": ["gate_id", "content_hash", "proposed_scope", "source_trust", "ts"],
+              "properties": {
+                "gate_id": { "$ref": "#/$defs/GateId" },
+                "content_hash": {
+                  "description": "Content hash of the proposed fact — a content-free ref, in practice sha256 hex. Not pattern-constrained here: the producer's own field is a plain string, and a schema stricter than the producer would reject documents the bus accepts.",
+                  "type": "string"
+                },
+                "proposed_scope": {
+                  "description": "Proposed promotion scope. An open vocabulary owned by the memory plane; new values arrive without a schema change.",
+                  "type": "string"
+                },
+                "source_trust": {
+                  "description": "Provenance trust level. An open vocabulary owned by the memory plane.",
+                  "type": "string"
+                },
+                "ts": {
+                  "description": "Producer-side timestamp, as provenance. Distinct from the envelope's `at`, which is when the bus broadcast the frame. Not `format`-constrained, for the same superset reason as `content_hash`.",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "GateVoided" },
+            "data": {
+              "description": "The owning plane voided a curation gate — for instance because the content drifted before it could be applied. A doorbell, not an authority: a consumer verifies against the owning plane's store before acting on it. Void is terminal and absorbing, so answered-then-voided is a legitimate sequence rather than a conflict.",
+              "type": "object",
+              "required": ["gate_id", "reason", "ts"],
+              "properties": {
+                "gate_id": { "$ref": "#/$defs/GateId" },
+                "reason": {
+                  "description": "Free-text, content-free reason.",
+                  "type": "string"
+                },
+                "ts": {
+                  "description": "Producer-side timestamp, as provenance.",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "WorkflowStarted" },
+            "data": {
+              "description": "A workflow run started.",
+              "type": "object",
+              "required": ["name"],
+              "properties": {
+                "name": {
+                  "description": "The workflow's template name.",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "PhaseEntered" },
+            "data": {
+              "description": "The workflow entered a phase, possibly as a retry of it.",
+              "type": "object",
+              "required": ["phase", "attempt"],
+              "properties": {
+                "phase": { "type": "string" },
+                "attempt": {
+                  "description": "1-based attempt counter for this phase.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "EvaluationVerdict" },
+            "data": {
+              "description": "A phase evaluation rendered its verdict — never the raw output it judged.",
+              "type": "object",
+              "required": ["verdict", "gap", "flags"],
+              "properties": {
+                "verdict": {
+                  "description": "The evaluator's verdict. An open vocabulary owned by the orchestration plane.",
+                  "type": "string"
+                },
+                "gap": {
+                  "description": "Optional numeric gap score behind the verdict.",
+                  "type": ["number", "null"]
+                },
+                "flags": {
+                  "description": "Content-free flag labels attached by the evaluator.",
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "DeviationLogged" },
+            "data": {
+              "description": "The run deviated from its plan in a logged, non-fatal way.",
+              "type": "object",
+              "required": ["deviation_kind", "note"],
+              "properties": {
+                "deviation_kind": {
+                  "description": "The deviation category. An open vocabulary owned by the orchestration plane.",
+                  "type": "string"
+                },
+                "note": {
+                  "description": "A short, content-free note.",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "FanOutStarted" },
+            "data": {
+              "description": "A parallel region fanned out. Leg events parent to this event's span, which is the concurrent-fan-out ambiguity the span tree exists to resolve.",
+              "type": "object",
+              "required": ["legs"],
+              "properties": {
+                "legs": {
+                  "description": "How many legs launched.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "LegCompleted" },
+            "data": {
+              "description": "One leg of a parallel region finished.",
+              "type": "object",
+              "required": ["leg", "leg_id", "outcome"],
+              "properties": {
+                "leg": {
+                  "description": "The leg's 0-based index within its region.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4294967295
+                },
+                "leg_id": {
+                  "description": "The leg's stable id.",
+                  "type": "string"
+                },
+                "outcome": {
+                  "description": "The leg outcome. An open vocabulary owned by the orchestration plane.",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind"],
+          "properties": {
+            "kind": { "const": "WorkflowCompleted" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "WorkflowFailed" },
+            "data": {
+              "description": "The workflow run failed terminally.",
+              "type": "object",
+              "required": ["reason"],
+              "properties": {
+                "reason": {
+                  "description": "A short, content-free failure reason.",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+
+    "AgentStatus": {
+      "title": "AgentStatus",
+      "description": "The observable lifecycle state of an agent — exactly one at a time. `Fresh` is the spawn state, left only by the first real prompt, so a never-driven agent reads differently from one that finished a turn. `UnsentDraft` is the state that earns its own name: the operator typed a prompt and never submitted it, so nothing is running while it looks as though something is. `Unknown` means no signal, not an error.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["status"],
+          "properties": { "status": { "const": "Fresh" } }
+        },
+        {
+          "type": "object",
+          "required": ["status"],
+          "properties": { "status": { "const": "Working" } }
+        },
+        {
+          "type": "object",
+          "required": ["status"],
+          "properties": { "status": { "const": "Idle" } }
+        },
+        {
+          "type": "object",
+          "required": ["status"],
+          "properties": { "status": { "const": "UnsentDraft" } }
+        },
+        {
+          "type": "object",
+          "required": ["status", "gate_id"],
+          "properties": {
+            "status": { "const": "Blocked" },
+            "gate_id": { "$ref": "#/$defs/GateId" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["status"],
+          "properties": { "status": { "const": "Unknown" } }
+        },
+        {
+          "type": "object",
+          "required": ["status"],
+          "properties": { "status": { "const": "Dead" } }
+        }
+      ]
+    },
+
+    "AgentRole": {
+      "title": "AgentRole",
+      "description": "The agent's position in the agent tree. Only `Solo` is emitted today; `Lead` and `Teammate` are reserved so the tree work lands additively rather than as a wire change.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["role"],
+          "properties": { "role": { "const": "Solo" } }
+        },
+        {
+          "type": "object",
+          "required": ["role"],
+          "properties": { "role": { "const": "Lead" } }
+        },
+        {
+          "type": "object",
+          "required": ["role", "parent"],
+          "properties": {
+            "role": { "const": "Teammate" },
+            "parent": { "$ref": "#/$defs/AgentRef" }
+          }
+        }
+      ]
+    },
+
+    "SpawnOrigin": {
+      "title": "SpawnOrigin",
+      "description": "Where a spawn request came from. Only `Operator` is emitted today; the rest are reserved.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["origin"],
+          "properties": { "origin": { "const": "Operator" } }
+        },
+        {
+          "type": "object",
+          "required": ["origin", "data"],
+          "properties": {
+            "origin": { "const": "Agent" },
+            "data": { "$ref": "#/$defs/AgentRef" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["origin", "data"],
+          "properties": {
+            "origin": { "const": "ExternalTrigger" },
+            "data": {
+              "type": "object",
+              "required": ["source"],
+              "properties": {
+                "source": {
+                  "description": "A string identifying the external trigger.",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+
+    "AgentView": {
+      "title": "AgentView",
+      "description": "The optional view tier, delivered only to clients that opt into it. This is the single exception to the rule that payloads carry refs and never content: the live terminal is the one thing an observer cannot reconstruct from ids.",
+      "oneOf": [
+        {
+          "description": "DEPRECATED since 0.1.1: producers no longer emit it. Use `Grid` (and the `RequestFull` command for a one-shot full frame). Still accepted; removed at the next breaking release.",
+          "deprecated": true,
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "Terminal" },
+            "data": { "$ref": "#/$defs/ScreenSnapshot" }
+          }
+        },
+        {
+          "description": "A damage delta of the agent's screen. Per connection and agent, the first `Grid` frame is always a full frame (`reset: true`); an incremental's `epoch` exceeds the previous frame's, while a reshipped full frame may repeat it.",
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "Grid" },
+            "data": {
+              "description": "A `gridwire::GridDelta`, opaque to this schema: decode it with the `gridwire` crate's own `GridDelta` type. Its serde shape is gridwire's, verbatim; the envelope carries it without re-describing it, so the two cannot drift apart.",
+              "type": "object"
+            }
+          }
+        },
+        {
+          "description": "A semantic terminal event: title, bell, clipboard write, shell-integration mark, search result. Ordered and never coalesced.",
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "Event" },
+            "data": {
+              "description": "A `gridwire::BackendEvent`, opaque to this schema: decode it with the `gridwire` crate's own `BackendEvent` type. Its serde shape is gridwire's, verbatim; the envelope carries it without re-describing it, so the two cannot drift apart. A unit variant serializes as a bare string (`\"Bell\"`), the others as a one-key object (`{\"Title\": \"...\"}`).",
+              "type": ["object", "string"]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "Transcript" },
+            "data": { "$ref": "#/$defs/StructuredTurn" }
+          }
+        }
+      ]
+    },
+
+    "ScreenSnapshot": {
+      "title": "ScreenSnapshot",
+      "deprecated": true,
+      "description": "A snapshot of a terminal grid. Row-major: the cell at (row, col) is `cells[row * cols + col]`. That `cells` has exactly `rows * cols` entries is a producer invariant this schema cannot state — JSON Schema cannot relate an array's length to two sibling integers — so a consumer that indexes blind on a short buffer is a consumer bug, not a schema gap. DEPRECATED since 0.1.1 with `AgentView::Terminal`; removed at the next breaking release.",
+      "type": "object",
+      "required": ["cols", "rows", "cells"],
+      "properties": {
+        "cols": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "cells": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Cell" }
+        }
+      }
+    },
+
+    "Cell": {
+      "title": "Cell",
+      "deprecated": true,
+      "description": "One terminal cell. DEPRECATED since 0.1.1 with `AgentView::Terminal`; removed at the next breaking release.",
+      "type": "object",
+      "required": ["ch", "bold", "fg", "bg"],
+      "properties": {
+        "ch": {
+          "description": "Exactly one Unicode scalar value.\n\nDeliberately *not* length-constrained, and the reason is a cross-language trap worth stating: JSON Schema's `minLength`/`maxLength` count characters, but implementations disagree on what a character is — a validator over UTF-16 counts an astral scalar such as an emoji as two, while one over code points counts it as one. A `maxLength: 1` here would therefore accept the same document in one language and reject it in another, which is precisely the divergence this repository's corpus exists to prevent. The single-scalar rule is enforced by the producer's own character type instead.",
+          "type": "string"
+        },
+        "bold": { "type": "boolean" },
+        "fg": { "$ref": "#/$defs/Color" },
+        "bg": { "$ref": "#/$defs/Color" }
+      }
+    },
+
+    "Color": {
+      "title": "Color",
+      "description": "A cell colour: the terminal default, a palette index, or a 24-bit truecolour. `Default` defers to the renderer's theme rather than naming a colour, which is what lets one grid render correctly under light and dark themes. DEPRECATED since 0.1.1 with `AgentView::Terminal`, its only user (through `Cell`); removed at the next breaking release. It carries no `deprecated` keyword itself: on a union the Python generator puts the flag on the model's own root field, which pydantic cannot then read, and the deprecation already reaches it through `Cell` and `ScreenSnapshot`.",
+      "oneOf": [
+        { "const": "Default" },
+        {
+          "type": "object",
+          "required": ["Indexed"],
+          "properties": {
+            "Indexed": {
+              "description": "A 256-colour palette index; 0 through 15 are the ANSI colours.",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["Rgb"],
+          "properties": {
+            "Rgb": {
+              "description": "A 24-bit truecolour, as [r, g, b].",
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              }
+            }
+          }
+        }
+      ]
+    },
+
+    "StructuredTurn": {
+      "title": "StructuredTurn",
+      "description": "A structured transcript turn. Reserved and deliberately minimal — it lands properly with the transcript path that will produce it, on the principle that a kind is cut against a real emitter's bytes rather than guessed ahead of one.",
+      "type": "object",
+      "required": ["role", "summary"],
+      "properties": {
+        "role": {
+          "description": "The conversational role of this turn.",
+          "type": "string"
+        },
+        "summary": {
+          "description": "A short, content-free summary — never raw output.",
+          "type": "string"
+        }
+      }
+    },
+
+    "Gate": {
+      "title": "Gate",
+      "description": "A pending operator decision that blocks something. One primitive for every moment a human is needed — a tool permission, an agent's question, a memory promotion, a workflow approval — which is why a client only ever implements one answering path.\n\n`producer` and `subject_ref` both appear and neither is redundant: `producer` routes the presentation and the handler, `subject_ref` is where the operator jumps to.",
+      "type": "object",
+      "required": ["gate_id", "producer", "subject_ref", "options", "context_summary"],
+      "properties": {
+        "gate_id": { "$ref": "#/$defs/GateId" },
+        "producer": { "$ref": "#/$defs/GateProducer" },
+        "subject_ref": { "$ref": "#/$defs/SubjectRef" },
+        "options": {
+          "description": "Ordered choices the operator may select. Empty for an open-answer gate — a client must therefore offer free text and escalation even when this list is empty, rather than rendering an empty button row.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/GateOption" }
+        },
+        "context_summary": {
+          "description": "A brief human-readable summary of why the human is needed — never raw content.",
+          "type": "string"
+        }
+      }
+    },
+
+    "GateProducer": {
+      "title": "GateProducer",
+      "description": "The category of subsystem that opened a gate.",
+      "type": "string",
+      "enum": ["AgentPermission", "AgentQuestion", "MemoryPromotion", "OrchestrationGate"]
+    },
+
+    "GateOption": {
+      "title": "GateOption",
+      "description": "One selectable choice within a gate.",
+      "type": "object",
+      "required": ["id", "label"],
+      "properties": {
+        "id": {
+          "description": "Machine-stable identifier, echoed back in a `Select` resolution.",
+          "type": "string"
+        },
+        "label": {
+          "description": "Human-readable text shown to the operator.",
+          "type": "string"
+        }
+      }
+    },
+
+    "GateResolution": {
+      "title": "GateResolution",
+      "description": "How an operator resolved a gate. Three modes, always all three: a preset option, free text, or escalating to a live conversation. `Chat` resolves by the interaction itself rather than by a payload — for an agent gate the operator is dropped into the session, so there is nothing to carry.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "option", "note"],
+          "properties": {
+            "kind": { "const": "Select" },
+            "option": {
+              "description": "The chosen option's `id`.",
+              "type": "string"
+            },
+            "note": {
+              "description": "Optional free-text note accompanying the selection.",
+              "type": ["string", "null"]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "text"],
+          "properties": {
+            "kind": { "const": "Answer" },
+            "text": {
+              "description": "The operator's free-text answer.",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind"],
+          "properties": { "kind": { "const": "Chat" } }
+        }
+      ]
+    },
+
+    "BusCommand": {
+      "title": "BusCommand",
+      "description": "A command sent from a client to the bus.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "Subscribe" },
+            "data": {
+              "description": "Subscribe to events, with an optional agent filter and a capability grant.",
+              "type": "object",
+              "required": ["kinds", "agents", "caps"],
+              "properties": {
+                "kinds": { "$ref": "#/$defs/KindFilter" },
+                "agents": {
+                  "description": "Restrict to events about these agents. Null means no agent filter — distinct from an empty list, which filters everything out.",
+                  "type": ["array", "null"],
+                  "items": { "$ref": "#/$defs/AgentRef" }
+                },
+                "caps": { "$ref": "#/$defs/Caps" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind"],
+          "properties": { "kind": { "const": "Snapshot" } }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "SpawnAgent" },
+            "data": {
+              "description": "Spawn a new agent process.",
+              "type": "object",
+              "required": ["factory", "cwd", "cmd", "resume", "origin", "name"],
+              "properties": {
+                "factory": { "$ref": "#/$defs/FactoryRef" },
+                "cwd": {
+                  "description": "Working directory for the spawned process.",
+                  "type": "string"
+                },
+                "cmd": {
+                  "description": "The argv to execute.",
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "resume": {
+                  "description": "Resume an existing session rather than starting fresh. Null starts a new one.",
+                  "oneOf": [{ "$ref": "#/$defs/SessionId" }, { "type": "null" }]
+                },
+                "origin": { "$ref": "#/$defs/SpawnOrigin" },
+                "name": {
+                  "description": "An optional recognizable name for the agent, shown instead of the bare id. Null leaves it unnamed.",
+                  "type": ["string", "null"]
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "SendInput" },
+            "data": {
+              "description": "Write raw bytes to an agent's terminal — the keystream path, for interactive typing and menu navigation.",
+              "type": "object",
+              "required": ["agent", "bytes"],
+              "properties": {
+                "agent": { "$ref": "#/$defs/AgentRef" },
+                "bytes": {
+                  "description": "The raw bytes to write, as octets.",
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "SubmitLine" },
+            "data": {
+              "description": "Type one line at the agent's prompt and submit it.\n\nThis is not expressible as `SendInput` with a trailing newline, which is why it is its own command rather than a convenience: a terminator inside a single text burst is absorbed into the prompt's draft instead of submitting it, so submitting requires the host to split the write. Raw keystreams stay on `SendInput`.",
+              "type": "object",
+              "required": ["agent", "text"],
+              "properties": {
+                "agent": { "$ref": "#/$defs/AgentRef" },
+                "text": {
+                  "description": "The line to type and submit, with no trailing newline.",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "Focus" },
+            "data": {
+              "description": "Switch the client's focused agent.",
+              "type": "object",
+              "required": ["agent"],
+              "properties": { "agent": { "$ref": "#/$defs/AgentRef" } }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "Resize" },
+            "data": {
+              "description": "Declare this connection's viewport for an agent. A declaration, not a command: the agent's terminal takes the smallest viewport declared across live connections, per dimension, or the producer's default when none is. A declaration lives while the agent is in the declaring connection's view subscription; it lapses on hang-up, on a `Subscribe` that drops the agent, or on one without `caps.view`. Wire shape unchanged since 0.1.0; only its arbitration changed.",
+              "type": "object",
+              "required": ["agent", "cols", "rows"],
+              "properties": {
+                "agent": { "$ref": "#/$defs/AgentRef" },
+                "cols": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 65535
+                },
+                "rows": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 65535
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "GateAnswer" },
+            "data": {
+              "description": "Resolve an open gate. The one command that answers a permission prompt, a question, a memory promotion or a workflow gate — by id, in any of the three resolution modes.",
+              "type": "object",
+              "required": ["gate_id", "resolution"],
+              "properties": {
+                "gate_id": { "$ref": "#/$defs/GateId" },
+                "resolution": { "$ref": "#/$defs/GateResolution" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "Nudge" },
+            "data": {
+              "description": "Send a lightweight nudge. Deliberately not durable — a nudge that must survive the recipient going away is mail.",
+              "type": "object",
+              "required": ["target", "text"],
+              "properties": {
+                "target": { "$ref": "#/$defs/Target" },
+                "text": { "type": "string" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "MailSend" },
+            "data": { "$ref": "#/$defs/MailDraft" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "RequestFull" },
+            "data": {
+              "description": "Reship the agent's current screen to THIS connection as one full `Grid` frame, answered on the asking connection's stream in order with the deltas that follow.",
+              "type": "object",
+              "required": ["agent"],
+              "properties": {
+                "agent": { "$ref": "#/$defs/AgentRef" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "ViewerFocus" },
+            "data": {
+              "description": "Declare whether this connection's viewer has the agent focused. Aggregated like `Resize`: the agent counts as focused while any live viewer says so, and the producer reports a change to the application only if it enabled focus reporting.",
+              "type": "object",
+              "required": ["agent", "focused"],
+              "properties": {
+                "agent": { "$ref": "#/$defs/AgentRef" },
+                "focused": { "type": "boolean" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "Quit" },
+            "data": {
+              "description": "Terminate the agent: the producer forgets its recovery record, then kills it, so it is never resumed. The only way to end an agent; closing or dropping a connection only detaches. Guarding against an accidental quit is the client's job.",
+              "type": "object",
+              "required": ["agent"],
+              "properties": {
+                "agent": { "$ref": "#/$defs/AgentRef" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "Scroll" },
+            "data": {
+              "description": "Scroll the agent's shared display through its history; every viewer sees it. A no-op while the application is on the alternate screen. Accepted only from a connection viewing the agent.",
+              "type": "object",
+              "required": ["agent", "amount"],
+              "properties": {
+                "agent": { "$ref": "#/$defs/AgentRef" },
+                "amount": {
+                  "description": "A `gridwire::ScrollAmount`, opaque to this schema: decode it with the `gridwire` crate's own `ScrollAmount` type. Its serde shape is gridwire's, verbatim; the envelope carries it without re-describing it, so the two cannot drift apart. A unit variant serializes as a bare string (`\"PageUp\"`), the others as a one-key object (`{\"Lines\": -3}`).",
+                  "type": ["object", "string"]
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "JumpMark" },
+            "data": {
+              "description": "Put the agent's previous (negative) or next (positive) shell-integration mark at the top of its shared display. Accepted only from a connection viewing the agent.",
+              "type": "object",
+              "required": ["agent", "dir"],
+              "properties": {
+                "agent": { "$ref": "#/$defs/AgentRef" },
+                "dir": { "type": "integer", "minimum": -128, "maximum": 127 }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "data"],
+          "properties": {
+            "kind": { "const": "Search" },
+            "data": {
+              "description": "Search the agent's history and screen for a regex and bring the match into view. The answer is a `SearchResult` event to every viewer; a client applies only a result it is awaiting. Accepted only from a connection viewing the agent.",
+              "type": "object",
+              "required": ["agent", "pattern", "forward"],
+              "properties": {
+                "agent": { "$ref": "#/$defs/AgentRef" },
+                "pattern": { "type": "string" },
+                "forward": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      ]
+    },
+
+    "Target": {
+      "title": "Target",
+      "description": "Where a command or message is delivered. Only `One` is implemented today; the rest are reserved so multicast lands without a wire change.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": { "const": "One" },
+            "id": { "$ref": "#/$defs/AgentRef" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": { "const": "Group" },
+            "id": { "$ref": "#/$defs/GroupRef" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "id"],
+          "properties": {
+            "kind": { "const": "Factory" },
+            "id": { "$ref": "#/$defs/FactoryRef" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind"],
+          "properties": { "kind": { "const": "Broadcast" } }
+        }
+      ]
+    },
+
+    "Caps": {
+      "title": "Caps",
+      "description": "The capability grant negotiated at subscription time. `status` is the universal floor — every transport gets status and commands, including one too small to render a terminal. `view` opts into the heavy live-terminal tier, which is why it is a grant rather than an assumption.",
+      "type": "object",
+      "required": ["status", "view"],
+      "properties": {
+        "status": { "type": "boolean" },
+        "view": { "type": "boolean" }
+      }
+    },
+
+    "KindClass": {
+      "title": "KindClass",
+      "description": "A coarse category of event kinds, used for subscription filtering. `Curation` is separate from `Memory` on purpose: curation gates are the integrity-sensitive ones, and the class boundary is where that capability seam falls.",
+      "type": "string",
+      "enum": ["Agent", "Memory", "Curation", "Orchestration"]
+    },
+
+    "KindFilter": {
+      "title": "KindFilter",
+      "description": "A subscription filter over kind classes.",
+      "type": "object",
+      "required": ["classes"],
+      "properties": {
+        "classes": {
+          "description": "The classes to subscribe to. An empty list means *all* classes, not none — the common case is an unfiltered subscription, and making that the empty value keeps a client from having to enumerate a list that grows.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/KindClass" }
+        }
+      }
+    },
+
+    "MailDraft": {
+      "title": "MailDraft",
+      "description": "A message composed by a sender, ready to submit. The delivered, durable record lives in the mail store; this is only what goes over the wire to create one.",
+      "type": "object",
+      "required": ["to", "subject", "body"],
+      "properties": {
+        "to": { "$ref": "#/$defs/Target" },
+        "subject": { "type": "string" },
+        "body": { "type": "string" }
+      }
+    },
+
+    "AgentRef": {
+      "title": "AgentRef",
+      "description": "An agent's vendor-neutral id, and the join key every plane stamps.\n\nDeliberately unconstrained. The producer's own type is an unvalidated string, so any pattern here would be a schema that rejects ids the bus accepts — the same superset rule the registry schema states from the other direction, where a *key* pattern must stay a superset of every id the bus accepts.",
+      "type": "string"
+    },
+
+    "SessionId": {
+      "title": "SessionId",
+      "description": "The hosted session's own id, used to resume it. Distinct from `AgentRef`: one names the agent to every plane, the other is the vendor's handle for its conversation.",
+      "type": "string"
+    },
+
+    "FactoryRef": {
+      "title": "FactoryRef",
+      "description": "Identifies an agent factory — a spawn template and the project scope around it.",
+      "type": "string"
+    },
+
+    "GroupRef": {
+      "title": "GroupRef",
+      "description": "Identifies an operator-named set of agents.",
+      "type": "string"
+    },
+
+    "WorkflowRef": {
+      "title": "WorkflowRef",
+      "description": "Identifies a workflow run.",
+      "type": "string"
+    },
+
+    "MemoryItemRef": {
+      "title": "MemoryItemRef",
+      "description": "Identifies a memory item — an opaque ref into the owning plane's store, never the item itself.",
+      "type": "string"
+    },
+
+    "GateId": {
+      "title": "GateId",
+      "description": "Identifies a gate.",
+      "type": "string"
+    },
+
+    "EventId": {
+      "title": "EventId",
+      "description": "Identifies a bus event.",
+      "type": "string"
+    },
+
+    "MailId": {
+      "title": "MailId",
+      "description": "Identifies a message in the durable mail store. An integer, unlike every other id here, because the mail store assigns it.",
+      "type": "integer",
+      "minimum": -9223372036854775808,
+      "maximum": 9223372036854775807
+    },
+
+    "TraceId": {
+      "title": "TraceId",
+      "description": "A trace id: 32 lowercase hex characters, not all zero. Propagate it unchanged along a causal chain; mint one only where a chain truly begins.",
+      "type": "string",
+      "pattern": "^(?!0{32}$)[0-9a-f]{32}$"
+    },
+
+    "SpanId": {
+      "title": "SpanId",
+      "description": "A span id: 16 lowercase hex characters, not all zero.",
+      "type": "string",
+      "pattern": "^(?!0{16}$)[0-9a-f]{16}$"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+[project]
+name = "glassworks-envelope"
+version = "0.1.1"
+description = "The bus wire envelope: typed events and commands, generated from schema/envelope.schema.json."
+license = "MIT OR Apache-2.0"
+requires-python = ">=3.11"
+dependencies = ["pydantic>=2.0"]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/glassworks_envelope"]
+
+[project.urls]
+Repository = "https://github.com/kingb/glassworks-envelope"

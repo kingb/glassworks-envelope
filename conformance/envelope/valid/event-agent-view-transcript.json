@@ -1,0 +1,25 @@
+{
+  "seq": 7,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Event",
+    "payload": {
+      "id": "evt-0001",
+      "subject": {
+        "kind": "Agent",
+        "id": "agent-7f3a"
+      },
+      "attention": "Normal",
+      "kind": {
+        "kind": "AgentView",
+        "data": {
+          "kind": "Transcript",
+          "data": {
+            "role": "assistant",
+            "summary": "answered without running a tool"
+          }
+        }
+      }
+    }
+  }
+}

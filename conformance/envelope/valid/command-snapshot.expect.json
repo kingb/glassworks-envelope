@@ -1,0 +1,16 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Command",
+      "payload": {
+        "kind": "Snapshot"
+      }
+    },
+    "seq": 33
+  },
+  "summary": {
+    "direction": "Command",
+    "kind": "Snapshot"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "property": "BusCommand::Subscribe.agents",
+  "schema": "rejects",
+  "bindings": {
+    "rust": "accepts",
+    "python": "rejects"
+  },
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Command",
+      "payload": {
+        "data": {
+          "agents": null,
+          "caps": {
+            "status": true,
+            "view": false
+          },
+          "kinds": {
+            "classes": []
+          }
+        },
+        "kind": "Subscribe"
+      }
+    },
+    "seq": 1
+  }
+}

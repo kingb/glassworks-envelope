@@ -1,0 +1,15 @@
+{
+  "seq": 49,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Command",
+    "payload": {
+      "kind": "Search",
+      "data": {
+        "agent": "agent-7f3a",
+        "pattern": "err(or)?",
+        "forward": false
+      }
+    }
+  }
+}

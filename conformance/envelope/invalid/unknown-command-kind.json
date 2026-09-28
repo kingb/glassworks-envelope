@@ -1,0 +1,11 @@
+{
+  "seq": 1,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Command",
+    "payload": {
+      "kind": "Detonate",
+      "data": {}
+    }
+  }
+}

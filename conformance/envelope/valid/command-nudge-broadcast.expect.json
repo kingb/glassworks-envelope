@@ -1,0 +1,22 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Command",
+      "payload": {
+        "data": {
+          "target": {
+            "kind": "Broadcast"
+          },
+          "text": "shutting down in five"
+        },
+        "kind": "Nudge"
+      }
+    },
+    "seq": 42
+  },
+  "summary": {
+    "direction": "Command",
+    "kind": "Nudge"
+  }
+}

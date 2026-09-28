@@ -1,0 +1,43 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Event",
+      "payload": {
+        "attention": "NeedsYou",
+        "id": "evt-0001",
+        "kind": {
+          "data": {
+            "context_summary": "wants to write outside the workspace",
+            "gate_id": "gate-0f2c",
+            "options": [
+              {
+                "id": "allow",
+                "label": "Allow this once"
+              },
+              {
+                "id": "deny",
+                "label": "Deny"
+              }
+            ],
+            "producer": "AgentPermission",
+            "subject_ref": {
+              "id": "agent-7f3a",
+              "kind": "Agent"
+            }
+          },
+          "kind": "GateRequested"
+        },
+        "subject": {
+          "id": "agent-7f3a",
+          "kind": "Agent"
+        }
+      }
+    },
+    "seq": 11
+  },
+  "summary": {
+    "direction": "Event",
+    "kind": "GateRequested"
+  }
+}

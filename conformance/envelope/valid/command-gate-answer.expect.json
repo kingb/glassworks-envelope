@@ -1,0 +1,24 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Command",
+      "payload": {
+        "data": {
+          "gate_id": "gate-0f2c",
+          "resolution": {
+            "kind": "Select",
+            "note": null,
+            "option": "deny"
+          }
+        },
+        "kind": "GateAnswer"
+      }
+    },
+    "seq": 40
+  },
+  "summary": {
+    "direction": "Command",
+    "kind": "GateAnswer"
+  }
+}

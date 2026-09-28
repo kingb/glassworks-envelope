@@ -1,0 +1,27 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Event",
+      "payload": {
+        "attention": "NeedsYou",
+        "id": "evt-0001",
+        "kind": {
+          "data": {
+            "reason": "evaluation escalated twice"
+          },
+          "kind": "WorkflowFailed"
+        },
+        "subject": {
+          "id": "wf-2f19",
+          "kind": "Workflow"
+        }
+      }
+    },
+    "seq": 28
+  },
+  "summary": {
+    "direction": "Event",
+    "kind": "WorkflowFailed"
+  }
+}

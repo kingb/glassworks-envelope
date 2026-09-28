@@ -1,0 +1,21 @@
+{
+  "seq": 29,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Event",
+    "payload": {
+      "id": "evt-0001",
+      "subject": {
+        "kind": "Factory",
+        "id": "factory-surface"
+      },
+      "attention": "Normal",
+      "kind": {
+        "kind": "AgentStatus",
+        "data": {
+          "status": "Unknown"
+        }
+      }
+    }
+  }
+}

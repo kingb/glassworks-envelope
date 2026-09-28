@@ -1,0 +1,28 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Event",
+      "payload": {
+        "attention": "Normal",
+        "id": "evt-0001",
+        "kind": {
+          "data": {
+            "deviation_kind": "skipped_optional_phase",
+            "note": "no fixtures to regenerate"
+          },
+          "kind": "DeviationLogged"
+        },
+        "subject": {
+          "id": "wf-2f19",
+          "kind": "Workflow"
+        }
+      }
+    },
+    "seq": 24
+  },
+  "summary": {
+    "direction": "Event",
+    "kind": "DeviationLogged"
+  }
+}

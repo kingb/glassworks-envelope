@@ -1,0 +1,23 @@
+{
+  "seq": 34,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Command",
+    "payload": {
+      "kind": "SpawnAgent",
+      "data": {
+        "factory": "factory-surface",
+        "cwd": "/w/surface",
+        "cmd": [
+          "claude",
+          "--dangerously-skip-permissions"
+        ],
+        "resume": "0f8c1d2e-3a4b-5c6d-7e8f-9a0b1c2d3e4f",
+        "origin": {
+          "origin": "Operator"
+        },
+        "name": "navigator"
+      }
+    }
+  }
+}

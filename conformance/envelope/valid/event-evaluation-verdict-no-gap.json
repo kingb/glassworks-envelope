@@ -1,0 +1,23 @@
+{
+  "seq": 23,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Event",
+    "payload": {
+      "id": "evt-0001",
+      "subject": {
+        "kind": "Workflow",
+        "id": "wf-2f19"
+      },
+      "attention": "Normal",
+      "kind": {
+        "kind": "EvaluationVerdict",
+        "data": {
+          "verdict": "proceed",
+          "gap": null,
+          "flags": []
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+[package]
+name = "glassworks-envelope"
+version = "0.1.1"
+edition = "2021"
+description = "The bus wire envelope: typed events and commands, generated from schema/envelope.schema.json."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/kingb/glassworks-envelope"
+readme = "../../../README.md"
+keywords = ["wire-format", "envelope", "json-schema", "serde"]
+categories = ["encoding"]
+# The conformance test reads the shared corpus from the repository root, which
+# is not part of the package, so the test does not ship.
+exclude = ["tests/"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+regress = "0.10"
+
+[dev-dependencies]
+glob = "0.3"

@@ -1,0 +1,35 @@
+{
+  "seq": 17,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Event",
+    "payload": {
+      "id": "evt-0001",
+      "subject": {
+        "kind": "Agent",
+        "id": "agent-7f3a"
+      },
+      "attention": "Normal",
+      "kind": {
+        "kind": "MemoryInjected",
+        "data": {
+          "items": [
+            "8814",
+            "9072",
+            "9310"
+          ],
+          "scores": [
+            0.91,
+            0.774,
+            0.5
+          ],
+          "reason": "top-3 by baseline-linear"
+        }
+      },
+      "trace": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "span_id": "00f067aa0ba902b7"
+      }
+    }
+  }
+}
