@@ -4,7 +4,7 @@ The wire envelope for an agent session bus: the frame every event and command tr
 defined once as a JSON Schema and generated into Rust and Python bindings, with a
 conformance corpus that proves the bindings agree.
 
-**Status: 0.1, in use.** The reference client is [Ember](https://github.com/kingb/ember).
+**Status: 0.2, in use.** The reference client is [Ember](https://github.com/kingb/ember).
 The reference producer is a session daemon that is not yet public. Changes follow
 [`docs/GOVERNANCE.md`](docs/GOVERNANCE.md).
 

@@ -1,0 +1,33 @@
+{
+  "canonical": {
+    "at": 1757635200000,
+    "body": {
+      "direction": "Command",
+      "payload": {
+        "data": {
+          "cmd": [
+            "claude"
+          ],
+          "cwd": "/w/surface",
+          "env": {
+            "AGENT_ROLE": "reviewer",
+            "LOG_LEVEL": "debug"
+          },
+          "factory": "factory-surface",
+          "in_place": true,
+          "name": "navigator",
+          "origin": {
+            "origin": "Operator"
+          },
+          "resume": null
+        },
+        "kind": "SpawnAgent"
+      }
+    },
+    "seq": 35
+  },
+  "summary": {
+    "direction": "Command",
+    "kind": "SpawnAgent"
+  }
+}

@@ -890,6 +890,15 @@
                 "name": {
                   "description": "An optional recognizable name for the agent, shown instead of the bare id. Null leaves it unnamed.",
                   "type": ["string", "null"]
+                },
+                "env": {
+                  "description": "Environment variables for the agent's process, on top of the producer's own. Configuration, possibly sensitive: it travels only on this command, and a producer never re-emits a value from it in any event. Absent adds nothing.",
+                  "type": "object",
+                  "additionalProperties": { "type": "string" }
+                },
+                "in_place": {
+                  "description": "Run the agent in `cwd` itself, for an agent that owns a persistent working copy, rather than in an isolated copy the producer makes for it. A producer may refuse it while another live agent runs in that directory. Absent means false.",
+                  "type": "boolean"
                 }
               }
             }

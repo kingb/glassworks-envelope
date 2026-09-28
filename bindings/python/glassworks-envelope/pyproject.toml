@@ -1,6 +1,6 @@
 [project]
 name = "glassworks-envelope"
-version = "0.1.1"
+version = "0.2.0"
 description = "The bus wire envelope: typed events and commands, generated from schema/envelope.schema.json."
 license = "MIT OR Apache-2.0"
 requires-python = ">=3.11"

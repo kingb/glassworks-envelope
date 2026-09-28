@@ -1,0 +1,27 @@
+{
+  "seq": 35,
+  "at": 1757635200000,
+  "body": {
+    "direction": "Command",
+    "payload": {
+      "kind": "SpawnAgent",
+      "data": {
+        "factory": "factory-surface",
+        "cwd": "/w/surface",
+        "cmd": [
+          "claude"
+        ],
+        "resume": null,
+        "origin": {
+          "origin": "Operator"
+        },
+        "name": "navigator",
+        "env": {
+          "AGENT_ROLE": "reviewer",
+          "LOG_LEVEL": "debug"
+        },
+        "in_place": true
+      }
+    }
+  }
+}

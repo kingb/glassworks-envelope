@@ -31,3 +31,14 @@ asked for.
 
 Additive changes need no three-way nod under [`GOVERNANCE.md`](GOVERNANCE.md); the reference
 client reviewed this one because it generates its bindings from this schema.
+
+## 0.2.0: the spawn environment and in-place spawns
+
+`SpawnAgent` gains two optional properties, `env` and `in_place`. Both are compatible on
+the wire: a document without them means what it meant before. They are new fields, so under
+[`GOVERNANCE.md`](GOVERNANCE.md) ("Versioning") this is a breaking Cargo release, because a
+struct literal or a pattern without `..` no longer compiles.
+
+| Date (UTC)       | Party              | Nod                                                                                   |
+|------------------|--------------------|---------------------------------------------------------------------------------------|
+| 2026-09-28       | Reference producer | Author of the change.                                                                 |

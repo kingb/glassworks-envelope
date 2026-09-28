@@ -627,6 +627,14 @@ class Data17(BaseModel):
         ...,
         description='An optional recognizable name for the agent, shown instead of the bare id. Null leaves it unnamed.',
     )
+    env: dict[str, str] | None = Field(
+        None,
+        description="Environment variables for the agent's process, on top of the producer's own. Configuration, possibly sensitive: it travels only on this command, and a producer never re-emits a value from it in any event. Absent adds nothing.",
+    )
+    in_place: StrictBool | None = Field(
+        None,
+        description='Run the agent in `cwd` itself, for an agent that owns a persistent working copy, rather than in an isolated copy the producer makes for it. A producer may refuse it while another live agent runs in that directory. Absent means false.',
+    )
 
 
 class BusCommand3(BaseModel):

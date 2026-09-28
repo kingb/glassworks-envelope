@@ -628,8 +628,19 @@ impl ::std::convert::From<BusCommand> for Body {
 #[doc = "              \"description\": \"Working directory for the spawned process.\","]
 #[doc = "              \"type\": \"string\""]
 #[doc = "            },"]
+#[doc = "            \"env\": {"]
+#[doc = "              \"description\": \"Environment variables for the agent's process, on top of the producer's own. Configuration, possibly sensitive: it travels only on this command, and a producer never re-emits a value from it in any event. Absent adds nothing.\","]
+#[doc = "              \"type\": \"object\","]
+#[doc = "              \"additionalProperties\": {"]
+#[doc = "                \"type\": \"string\""]
+#[doc = "              }"]
+#[doc = "            },"]
 #[doc = "            \"factory\": {"]
 #[doc = "              \"$ref\": \"#/$defs/FactoryRef\""]
+#[doc = "            },"]
+#[doc = "            \"in_place\": {"]
+#[doc = "              \"description\": \"Run the agent in `cwd` itself, for an agent that owns a persistent working copy, rather than in an isolated copy the producer makes for it. A producer may refuse it while another live agent runs in that directory. Absent means false.\","]
+#[doc = "              \"type\": \"boolean\""]
 #[doc = "            },"]
 #[doc = "            \"name\": {"]
 #[doc = "              \"description\": \"An optional recognizable name for the agent, shown instead of the bare id. Null leaves it unnamed.\","]
@@ -1043,7 +1054,16 @@ pub enum BusCommand {
         cmd: ::std::vec::Vec<::std::string::String>,
         #[doc = "Working directory for the spawned process."]
         cwd: ::std::string::String,
+        #[doc = "Environment variables for the agent's process, on top of the producer's own. Configuration, possibly sensitive: it travels only on this command, and a producer never re-emits a value from it in any event. Absent adds nothing."]
+        #[serde(
+            default,
+            skip_serializing_if = ":: std :: collections :: HashMap::is_empty"
+        )]
+        env: ::std::collections::HashMap<::std::string::String, ::std::string::String>,
         factory: FactoryRef,
+        #[doc = "Run the agent in `cwd` itself, for an agent that owns a persistent working copy, rather than in an isolated copy the producer makes for it. A producer may refuse it while another live agent runs in that directory. Absent means false."]
+        #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
+        in_place: ::std::option::Option<bool>,
         #[doc = "An optional recognizable name for the agent, shown instead of the bare id. Null leaves it unnamed."]
         name: ::std::option::Option<::std::string::String>,
         origin: SpawnOrigin,
